@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">YoutubetoMp3</string>
+    <string name="action_settings">Ayarlar</string>
+    <string name="url">Url buraya yapıştırın.</string>
+    <string name="download">İndir</string>
+    <string name="openafter">İndirdikten sonra dosyayı aç           </string>
+    <string name="warning">Video linkini yapıştırmalısınız.</string>
+    <string name="starting">İndirme başladı...</string>
+
+</resources>
