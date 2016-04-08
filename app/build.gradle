@@ -26,5 +26,5 @@ dependencies {
     compile 'com.android.support:design:23.2.1'
     compile 'com.daimajia.numberprogressbar:library:1.2@aar'
     compile 'com.squareup.picasso:picasso:2.3.2'
-    compile project(':httprequestlib')
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
 }

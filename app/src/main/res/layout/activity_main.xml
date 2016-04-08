@@ -37,7 +37,8 @@
             android:layout_height="wrap_content"
             android:hint="@string/url"
             android:id="@+id/url"
-            android:textColor="@color/textcolor" />
+            android:textColor="@color/textcolor"
+            android:singleLine="true" />
 
 
 

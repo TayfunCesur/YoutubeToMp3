@@ -22,17 +22,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.daimajia.numberprogressbar.NumberProgressBar;
-import com.infxios.ferhat.httprequestlib.HttpRequestFactory;
-import com.infxios.ferhat.httprequestlib.RIO;
-import com.infxios.ferhat.httprequestlib.RequestType;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -40,6 +39,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -70,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!mUrl.equals("")) {
                     video_id = extractYTId(mUrl);
                     mSwipeRefresh.setRefreshing(true);
-                    Picasso.with(MainActivity.this).load("http://img.youtube.com/vi/" + video_id + "/0.jpg").into(mThumbNailImage, new Callback() {
+                    Picasso.with(MainActivity.this).load("http://img.youtube.com/vi/" + video_id + "/0.jpg").into(mThumbNailImage, new com.squareup.picasso.Callback() {
                         @Override
                         public void onSuccess() {
 
@@ -78,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onError() {
-                            mThumbNailImage.setBackgroundResource(R.drawable.signs);
+                            mThumbNailImage.setImageResource(R.drawable.signs);
                         }
                     });
                     mSwipeRefresh.setRefreshing(false);
@@ -92,28 +99,51 @@ public class MainActivity extends AppCompatActivity {
         mConvert.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                HttpRequestFactory factory = new HttpRequestFactory(getApplicationContext()) {
-                    @Override
-                    public void Happens(RIO rio) {
-                        JSONObject object = rio.response_json;
-                        try {
-                            video_title = object.getString("title");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        if (!mUrl.equals("")) {
-                            new DownloadFileAsync().execute();
-                        }
-
-
-                    }
-                };
-                factory.executeRequest(RequestType.GET,"http://www.youtubeinmp3.com/fetch/?format=JSON&video=https://www.youtube.com/watch?v="+video_id,null);
+                try {
+                    mSwipeRefresh.setRefreshing(true);
+                    run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 
 
     }
+
+    private final OkHttpClient client = new OkHttpClient();
+
+    public void run() throws Exception {
+        Request request = new Request.Builder()
+                .url("http://www.youtubeinmp3.com/fetch/?format=JSON&video=https://www.youtube.com/watch?v="+video_id)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+                try {
+                    JSONObject obj = new JSONObject(response.body().string());
+                    video_title = obj.getString("title");
+                    if (!mUrl.equals("")) {
+                        new DownloadFileAsync().execute();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+    }
+
 
 
     private void initVariables()
@@ -155,13 +185,14 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
     class DownloadFileAsync extends AsyncTask<String, String, String> {
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mSwipeRefresh.setRefreshing(true);
-            Toast.makeText(MainActivity.this,getResources().getString(R.string.starting),Toast.LENGTH_SHORT).show();
         }
 
 
